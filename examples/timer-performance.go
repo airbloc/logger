@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/azer/logger"
+	"github.com/airbloc/logger"
 )
 
 func main() {
-
 	var perf = logger.New("performance")
 	var test = logger.New("test")
 

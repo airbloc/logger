@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/azer/logger"
 	"time"
+
+	"github.com/airbloc/logger"
 )
 
 var log = logger.New("app")
