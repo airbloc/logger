@@ -35,6 +35,11 @@ func (l *Logger) Info(msg string, v ...interface{}) {
 	l.Log("INFO", msg, v)
 }
 
+// Error logs an debug message.
+func (l *Logger) Debug(msg string, v ...interface{}) {
+	l.Log("DEBUG", msg, v)
+}
+
 // Error logs an error message.
 func (l *Logger) Error(msg string, v ...interface{}) {
 	l.Log("ERROR", msg, v)

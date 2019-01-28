@@ -9,6 +9,7 @@ var (
 	muted   = &OutputSettings{}
 	verbose = &OutputSettings{
 		Info:  true,
+		Debug: true,
 		Timer: true,
 		Error: true,
 	}
@@ -17,7 +18,7 @@ var (
 func init() {
 	runtime = &Runtime{
 		Writers: []OutputWriter{
-			NewStandardOutput(os.Stderr, ""),
+			NewStandardOutput(os.Stderr, "", "*"),
 		},
 	}
 }
@@ -29,6 +30,7 @@ type OutputWriter interface {
 
 type OutputSettings struct {
 	Info  bool
+	Debug bool
 	Timer bool
 	Error bool
 }

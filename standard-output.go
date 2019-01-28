@@ -10,18 +10,21 @@ import (
 	isterminal "github.com/azer/is-terminal"
 )
 
-func NewStandardOutput(file *os.File, filterSettings string) StandardWriter {
+func NewStandardOutput(file *os.File, levelSettings, filterSettings string) StandardWriter {
 	var writer = StandardWriter{
 		ColorsEnabled: isterminal.IsTerminal(int(file.Fd())),
 		Target:        file,
 	}
 
+	if os.Getenv("LOG_LEVEL") != "" {
+		levelSettings = os.Getenv("LOG_LEVEL")
+	}
 	if os.Getenv("LOG") != "" {
 		filterSettings = os.Getenv("LOG")
 	} else if filterSettings == "" {
 		filterSettings = "*"
 	}
-	defaultOutputSettings := parseVerbosityLevel(os.Getenv("LOG_LEVEL"))
+	defaultOutputSettings := parseVerbosityLevel(levelSettings)
 	writer.Settings = parsePackageSettings(filterSettings, defaultOutputSettings)
 
 	return writer
@@ -46,6 +49,10 @@ func (sw *StandardWriter) IsEnabled(logger, level string) bool {
 
 	if level == "INFO" {
 		return settings.Info
+	}
+
+	if level == "DEBUG" {
+		return settings.Debug
 	}
 
 	if level == "ERROR" {
@@ -173,16 +180,23 @@ func parseVerbosityLevel(val string) *OutputSettings {
 
 	s := &OutputSettings{
 		Info:  true,
+		Debug: true,
 		Timer: true,
 		Error: true,
 	}
 
+	if val == "INFO" {
+		s.Debug = false
+	}
+
 	if val == "TIMER" {
 		s.Info = false
+		s.Debug = false
 	}
 
 	if val == "ERROR" {
 		s.Info = false
+		s.Debug = false
 		s.Timer = false
 	}
 
