@@ -41,7 +41,14 @@ func (l *Logger) Debug(msg string, v ...interface{}) {
 }
 
 // Error logs an error message.
+// If error has been given as a first argument, the error will be logged also.
 func (l *Logger) Error(msg string, v ...interface{}) {
+	if len(v) > 0 {
+		if err, hasErr := v[0].(error); hasErr {
+			msg = msg + ": " + err.Error()
+			v = v[1:]
+		}
+	}
 	l.Log("ERROR", msg, v)
 }
 
