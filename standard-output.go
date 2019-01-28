@@ -97,8 +97,10 @@ func (sw *StandardWriter) JSONFormat(log *Log) string {
 }
 
 func (sw *StandardWriter) PrettyFormat(log *Log) string {
-	return fmt.Sprintf("%s %s %s%s",
-		time.Now().Format("15:04:05.000"),
+	return fmt.Sprintf("%s%s%s %s %s%s",
+		dim,
+		time.Now().Format("Jan 02 15:04:05.000"),
+		reset,
 		sw.PrettyLabel(log),
 		log.Message,
 		sw.PrettyAttrs(log.Attrs))

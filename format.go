@@ -10,6 +10,7 @@ var (
 	white   = "\033[37m"
 	reset   = "\033[0m"
 	bold    = "\033[1m"
+	dim     = "\033[2m"
 	red     = "\033[31m"
 	blue    = "\033[34m"
 	green   = "\033[32m"
