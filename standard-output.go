@@ -3,20 +3,26 @@ package logger
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/azer/is-terminal"
 	"os"
 	"strings"
 	"time"
+
+	isterminal "github.com/azer/is-terminal"
 )
 
-func NewStandardOutput(file *os.File) OutputWriter {
+func NewStandardOutput(file *os.File, filterSettings string) StandardWriter {
 	var writer = StandardWriter{
 		ColorsEnabled: isterminal.IsTerminal(int(file.Fd())),
 		Target:        file,
 	}
 
+	if os.Getenv("LOG") != "" {
+		filterSettings = os.Getenv("LOG")
+	} else if filterSettings == "" {
+		filterSettings = "*"
+	}
 	defaultOutputSettings := parseVerbosityLevel(os.Getenv("LOG_LEVEL"))
-	writer.Settings = parsePackageSettings(os.Getenv("LOG"), defaultOutputSettings)
+	writer.Settings = parsePackageSettings(filterSettings, defaultOutputSettings)
 
 	return writer
 }

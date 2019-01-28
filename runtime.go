@@ -17,7 +17,7 @@ var (
 func init() {
 	runtime = &Runtime{
 		Writers: []OutputWriter{
-			NewStandardOutput(os.Stderr),
+			NewStandardOutput(os.Stderr, ""),
 		},
 	}
 }
@@ -59,7 +59,6 @@ func Hook(writer OutputWriter) {
 }
 
 // Legacy method
-func SetOutput(file *os.File) {
-	writer := NewStandardOutput(file)
+func SetLogger(writer OutputWriter) {
 	runtime.Writers[0] = writer
 }
