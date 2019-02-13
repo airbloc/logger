@@ -77,13 +77,15 @@ func (l *Logger) Wtf(v ...interface{}) {
 	l.Log("FATAL", Colored(Red, msg), v)
 }
 
-func (l *Logger) Recover(context Attrs) {
+func (l *Logger) Recover(context Attrs) interface{} {
 	if r := recover(); r != nil {
 		if err, ok := r.(error); ok {
 			r = err.Error()
 		}
 		l.Wtf("panic: {}\n{}", r, Colored(dim, string(debug.Stack())), context)
+		return r
 	}
+	return nil
 }
 
 // Timer returns a timer sub-logger.
