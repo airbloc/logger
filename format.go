@@ -10,33 +10,22 @@ var (
 	white   = "\033[37m"
 	reset   = "\033[0m"
 	bold    = "\033[1m"
-	dim     = "\033[2m"
-	red     = "\033[31m"
-	blue    = "\033[34m"
-	green   = "\033[32m"
-	cyan    = "\033[36m"
-	yellow  = "\033[33m"
-	magenta = "\033[35m"
-
-	//colorIndex      = 0
-	//listOfColors    sync.Map
-	//colorLoggerDict sync.Map
-	/*colors          = []string{
-		"\033[34m", // blue
-		"\033[32m", // green
-		"\033[36m", // cyan
-		"\033[33m", // yellow
-		"\033[35m", // magenta
-	}*/
+	dim     = "\033[90m"
+	Red     = "\033[31m"
+	Blue    = "\033[34m"
+	Green   = "\033[32m"
+	Cyan    = "\033[36m"
+	Yellow  = "\033[33m"
+	Magenta = "\033[35m"
 )
 
 func init() {
 	colors.Store("index", 0)
-	colors.Store("index:0", blue)
-	colors.Store("index:1", green)
-	colors.Store("index:2", cyan)
-	colors.Store("index:3", yellow)
-	colors.Store("index:4", magenta)
+	colors.Store("index:0", Blue)
+	colors.Store("index:1", Green)
+	colors.Store("index:2", Cyan)
+	colors.Store("index:3", Yellow)
+	colors.Store("index:4", Magenta)
 	colors.Store("len", 5)
 }
 
@@ -60,4 +49,8 @@ func colorFor(key string) string {
 	color := nextColor()
 	colors.Store(fmt.Sprintf("module:%s", key), color)
 	return color
+}
+
+func Colored(color string, msg string) string {
+	return color + msg + reset
 }

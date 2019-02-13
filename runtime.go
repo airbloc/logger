@@ -12,6 +12,7 @@ var (
 		Debug: true,
 		Timer: true,
 		Error: true,
+		Fatal: true,
 	}
 )
 
@@ -33,6 +34,7 @@ type OutputSettings struct {
 	Debug bool
 	Timer bool
 	Error bool
+	Fatal bool
 }
 
 type Runtime struct {

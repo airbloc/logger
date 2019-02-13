@@ -63,6 +63,10 @@ func (sw *StandardWriter) IsEnabled(logger, level string) bool {
 		return settings.Timer
 	}
 
+	if level == "FATAL" {
+		return settings.Fatal
+	}
+
 	return false
 }
 
@@ -97,25 +101,26 @@ func (sw *StandardWriter) JSONFormat(log *Log) string {
 }
 
 func (sw *StandardWriter) PrettyFormat(log *Log) string {
-	return fmt.Sprintf("%s%s%s %s %s%s",
-		dim,
-		time.Now().Format("Jan 02 15:04:05.000"),
-		reset,
+	return fmt.Sprintf("%s %s %s%s",
+		Colored(dim, time.Now().Format("Jan 02 15:04:05.000")),
 		sw.PrettyLabel(log),
 		log.Message,
-		sw.PrettyAttrs(log.DisplayedAttrs))
+		sw.PrettyAttrs(log))
 }
 
-func (sw *StandardWriter) PrettyAttrs(attrs *Attrs) string {
-	if attrs == nil {
+func (sw *StandardWriter) PrettyAttrs(log *Log) string {
+	if *log.DisplayedAttrs == nil {
 		return ""
 	}
 
 	result := ""
-	for key, val := range *attrs {
+	for key, val := range *log.DisplayedAttrs {
 		result = fmt.Sprintf("%s %s=%v", result, key, val)
 	}
 
+	if log.Level == "FATAL" {
+		result = Colored(Red, result)
+	}
 	return result
 }
 
@@ -128,8 +133,8 @@ func (sw *StandardWriter) PrettyLabel(log *Log) string {
 }
 
 func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
-	if log.Level == "ERROR" {
-		return fmt.Sprintf("(%s!%s)", red, colorFor(log.Package))
+	if log.Level == "ERROR" || log.Level == "FATAL" {
+		return fmt.Sprintf("(%s!%s)", Red, colorFor(log.Package))
 	}
 
 	if log.Level == "TIMER" {
@@ -176,31 +181,34 @@ func parsePackageName(input string) (string, *OutputSettings) {
 func parseVerbosityLevel(val string) *OutputSettings {
 	val = strings.ToUpper(strings.TrimSpace(val))
 
-	if val == "MUTE" {
-		return &OutputSettings{}
-	}
-
 	s := &OutputSettings{
 		Info:  true,
 		Debug: true,
 		Timer: true,
 		Error: true,
+		Fatal: true,
 	}
 
-	if val == "INFO" {
-		s.Debug = false
-	}
+	switch val {
+	case "MUTE":
+		s.Fatal = false
+		fallthrough
 
-	if val == "TIMER" {
-		s.Info = false
-		s.Debug = false
-	}
+	case "FATAL":
+		s.Error = false
+		fallthrough
 
-	if val == "ERROR" {
-		s.Info = false
-		s.Debug = false
+	case "ERROR":
 		s.Timer = false
-	}
+		fallthrough
 
+	case "TIMER":
+		s.Info = false
+		fallthrough
+
+	case "INFO":
+		s.Debug = false
+	}
+	// all `true` for "*" or "DEBUG"
 	return s
 }

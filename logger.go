@@ -1,5 +1,10 @@
 package logger
 
+import (
+	"fmt"
+	"runtime/debug"
+)
+
 // New returns a logger bound to the given name.
 func New(name string) *Logger {
 	return &Logger{
@@ -44,11 +49,41 @@ func (l *Logger) Debug(msg string, v ...interface{}) {
 func (l *Logger) Error(msg string, v ...interface{}) {
 	if len(v) > 0 {
 		if err, hasErr := v[0].(error); hasErr {
-			msg = msg + ": " + err.Error()
+			msg = fmt.Sprintf("%s: %v", msg, err)
 			v = v[1:]
 		}
 	}
 	l.Log("ERROR", msg, v)
+}
+
+// Wtf logs error detailed, and reports error to error transport.
+// Error message (format) is optional, so you can call the method just like `Wtf(error)`
+// TODO: add transports for errors reported with WTF level
+func (l *Logger) Wtf(v ...interface{}) {
+	msg := ""
+	if m, ok := v[0].(string); ok {
+		msg = m
+		v = v[1:]
+	}
+	if len(v) > 0 {
+		if err, hasErr := v[0].(error); hasErr {
+			if msg != "" {
+				msg = msg + ": "
+			}
+			msg = msg + fmt.Sprintf("%+v", err)
+			v = v[1:]
+		}
+	}
+	l.Log("FATAL", Colored(Red, msg), v)
+}
+
+func (l *Logger) Recover(context Attrs) {
+	if r := recover(); r != nil {
+		if err, ok := r.(error); ok {
+			r = err.Error()
+		}
+		l.Wtf("panic: {}\n{}", r, Colored(dim, string(debug.Stack())), context)
+	}
 }
 
 // Timer returns a timer sub-logger.
