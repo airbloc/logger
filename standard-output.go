@@ -103,7 +103,7 @@ func (sw *StandardWriter) PrettyFormat(log *Log) string {
 		reset,
 		sw.PrettyLabel(log),
 		log.Message,
-		sw.PrettyAttrs(log.Attrs))
+		sw.PrettyAttrs(log.DisplayedAttrs))
 }
 
 func (sw *StandardWriter) PrettyAttrs(attrs *Attrs) string {

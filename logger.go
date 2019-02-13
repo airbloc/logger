@@ -1,9 +1,5 @@
 package logger
 
-import (
-	"fmt"
-)
-
 // New returns a logger bound to the given name.
 func New(name string) *Logger {
 	return &Logger{
@@ -19,14 +15,17 @@ type Logger struct {
 }
 
 func (logger *Logger) Log(level, message string, args []interface{}) {
-	v, attrs := SplitAttrs(args)
+	attrs := MergeAttrs(args)
+	formatted, purgedAttrs := Format(message, *attrs)
 
 	runtime.Log(&Log{
 		Package: logger.Name,
 		Level:   level,
-		Message: fmt.Sprintf(message, v...),
+		Message: formatted,
 		Time:    Now(),
 		Attrs:   attrs,
+
+		DisplayedAttrs: &purgedAttrs,
 	})
 }
 
