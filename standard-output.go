@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -115,6 +116,9 @@ func (sw *StandardWriter) PrettyAttrs(log *Log) string {
 
 	result := ""
 	for key, val := range *log.DisplayedAttrs {
+		if byteval, ok := val.([]byte); ok {
+			val = hex.EncodeToString(byteval)
+		}
 		result = fmt.Sprintf("%s %s=%v", result, key, val)
 	}
 
