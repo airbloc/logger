@@ -28,7 +28,7 @@ func Middleware(loggerName string) gin.HandlerFunc {
 			"status": statusCode,
 			"client": c.ClientIP(),
 		}
-		timer.End("{method} {url} – HTTP {}{status}{} – {client}",
+		timer.End("{method} {url} – {}HTTP {status}{} – {client}",
 			statusColor,
 			logger.Reset,
 			info)
