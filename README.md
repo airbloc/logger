@@ -13,7 +13,7 @@ Minimalistic logging library for Go, optimized for centralized logging. Forked f
 * [Error Handling](#programmatical-usage)
 * [Hooks](#hooks)
 
-![](https://cldup.com/CN7JhSDMwf.png)
+![Screenshot](https://i.imgur.com/kOhpPZO.png)
 
 ## Install
 
