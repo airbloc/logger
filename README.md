@@ -1,6 +1,6 @@
 ## logger
 
-Minimalistic logging library for Go. [Blog Post](http://azer.bike/journal/monitoring-slow-sql-queries-via-slack/)
+Minimalistic logging library for Go, optimized for centralized logging. Forked from [azer/logger](https://github.com/azer/logger).
 
 **Features:**
 
@@ -9,15 +9,16 @@ Minimalistic logging library for Go. [Blog Post](http://azer.bike/journal/monito
 * [Timers for measuring performance](#timers)
 * [Structured JSON output](#structured-output)
 * [Programmatical Usage](#programmatical-usage)
+* [Module for Compatibility with Popular Frameworks](#modules)
+* [Error Handling](#programmatical-usage)
 * [Hooks](#hooks)
-* ...in production for 4 years!
 
 ![](https://cldup.com/CN7JhSDMwf.png)
 
 ## Install
 
 ```bash
-$ go get github.com/azer/logger
+$ go get github.com/airbloc/logger
 ```
 
 ## Getting Started
@@ -25,20 +26,28 @@ $ go get github.com/azer/logger
 Create an instance with a preferred name;
 
 ```go
-import "github.com/azer/logger"
+import "github.com/airbloc/logger"
 
 var log = logger.New("example-app")
 ```
 
-Every logger has three methods: `Info`, `Timer` and `Error`.
+Every logger has five log levels:
+
+* `Info`
+* `Timer`
+* `Debug`
+* `Error` 
+* `Fatal`
+
+and one special method called `Recover`.
 
 ```go
-log.Info("Running at %d", 8080)
+log.Info("Running at {}", 8080)
 
 err := DoSomething()
 
 if err != nil {
-  log.Error("Failed: %s", err.Error())
+  log.Error("Failed", err)
 }
 ```
 
@@ -147,7 +156,7 @@ Customizing the default behavior is easy. You can implement your own output;
 
 ```go
 import (
-  "github.com/azer/logger"
+  "github.com/airbloc/logger"
 )
 
 type CustomWriter struct {}
@@ -162,6 +171,30 @@ func main () {
 ```
 
 See `examples/programmatical.go` for a working version of this example.
+
+## Modules
+
+Currently, airbloc/logger supports:
+
+#### [Gin](https://github.com/gin-gonic/gin)
+
+See `module/loggergin/middleware.go` for details.
+
+```go
+import (
+  "github.com/gin-gonic/gin"
+  "github.com/airbloc/logger/modules/loggergin"
+)
+
+func main() {
+  r := gin.New()
+  r.Use(loggergin.Middleware("api"))
+}
+```
+
+#### [gRPC](https://grpc.io)
+
+See `module/loggergrpc/interceptor.go` for details.
 
 ## Hooks 
 
