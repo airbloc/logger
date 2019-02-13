@@ -14,7 +14,7 @@ var users = logger.New("users")
 var db = logger.New("database")
 
 func main() {
-	go app.Info("Starting at %d", 9088)
+	go app.Info("Starting at {}", 9088)
 
 	go db.Info("Connecting to mysql://azer@localhost:9900/foobar")
 	go images.Info("Requesting an image at foo/bar.jpg")
@@ -25,12 +25,12 @@ func main() {
 
 	db.Error("Fatal connection error.")
 
-	users.Info("%s just logged  from %s", "John", "Istanbul")
+	users.Info("{} just logged from {}", "John", "Istanbul")
 
 	socket.Info("Connecting...")
 
-	err := errors.New("Unable to connect.")
-	socket.Error("%v", err)
+	err := errors.New("unable to connect")
+	socket.Error("error", err)
 
 	time.Sleep(time.Millisecond * 250)
 

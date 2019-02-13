@@ -9,7 +9,7 @@ import (
 var log = logger.New("app")
 
 func main() {
-	log.Info("Starting at %d", 9088)
+	log.Info("Starting at {port}", logger.Attrs{"port": 9088})
 
 	log.Info("Requesting an image at foo/bar.jpg")
 	timer := log.Timer()

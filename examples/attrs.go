@@ -15,19 +15,20 @@ func main() {
 		"to":   "qux@corge.com",
 	})
 
+	log.Info("Sending e-mail to {address}", logger.Attrs{
+		"from":    "foo@bar.com",
+		"address": "qux@corge.com",
+	})
+
 	err := errors.New("Too busy")
 
-	log.Error("Failed to send e-mail. Error: %s", err, logger.Attrs{
+	// if the last argument (except Attrs) is `error`, it'll be displayed automatically
+	log.Error("Failed to send e-mail", err, logger.Attrs{
 		"from": "foo@bar.com",
 		"to":   "qux@corge.com",
 	})
 
 	timer := log.Timer()
 	time.Sleep(time.Millisecond * 500)
-	timer.End("Created a new %s image", "bike", logger.Attrs{
-		"id":    123456,
-		"model": "bmx",
-		"frame": "purple",
-		"year":  2014,
-	})
+	timer.End("Created a new {} {} images", 300, "bike")
 }
