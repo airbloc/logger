@@ -8,7 +8,7 @@ import (
 var (
 	colors  sync.Map
 	white   = "\033[37m"
-	reset   = "\033[0m"
+	Reset   = "\033[0m"
 	bold    = "\033[1m"
 	dim     = "\033[90m"
 	Red     = "\033[31m"
@@ -52,5 +52,5 @@ func colorFor(key string) string {
 }
 
 func Colored(color string, msg string) string {
-	return color + msg + reset
+	return color + msg + Reset
 }

@@ -129,7 +129,7 @@ func (sw *StandardWriter) PrettyLabel(log *Log) string {
 		colorFor(log.Package),
 		log.Package,
 		sw.PrettyLabelExt(log),
-		reset)
+		Reset)
 }
 
 func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
@@ -138,7 +138,7 @@ func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
 	}
 
 	if log.Level == "TIMER" {
-		return fmt.Sprintf("(%s%s%s)", reset, fmt.Sprintf("%v", time.Duration(log.ElapsedNano)), colorFor(log.Package))
+		return fmt.Sprintf("(%s%s%s)", Reset, fmt.Sprintf("%v", time.Duration(log.ElapsedNano)), colorFor(log.Package))
 	}
 
 	return ""
