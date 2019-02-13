@@ -3,7 +3,6 @@ package loggergin
 import (
 	"github.com/airbloc/logger"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func Middleware(loggerName string) gin.HandlerFunc {
@@ -29,8 +28,9 @@ func Middleware(loggerName string) gin.HandlerFunc {
 			"status": statusCode,
 			"client": c.ClientIP(),
 		}
-		timer.End("{method} {url} – HTTP {}{status} {}{} – {client}",
-			statusColor, http.StatusText(statusCode), logger.Reset,
+		timer.End("{method} {url} – HTTP {}{status}{} – {client}",
+			statusColor,
+			logger.Reset,
 			info)
 	}
 }
