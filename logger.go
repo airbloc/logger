@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"os"
 	"runtime/debug"
 )
 
@@ -19,7 +20,7 @@ type Logger struct {
 	Name string
 }
 
-func (logger *Logger) Log(level, message string, args []interface{}) {
+func (logger *Logger) Log(level *LogLevel, message string, args []interface{}) {
 	attrs := MergeAttrs(args)
 	formatted, purgedAttrs := Format(message, *attrs)
 
@@ -36,12 +37,12 @@ func (logger *Logger) Log(level, message string, args []interface{}) {
 
 // Info prints log information to the screen that is informational in nature.
 func (l *Logger) Info(msg string, v ...interface{}) {
-	l.Log("INFO", msg, v)
+	l.Log(Info, msg, v)
 }
 
 // Error logs an debug message.
 func (l *Logger) Debug(msg string, v ...interface{}) {
-	l.Log("DEBUG", msg, v)
+	l.Log(Debug, msg, v)
 }
 
 // Error logs an error message.
@@ -53,7 +54,7 @@ func (l *Logger) Error(msg string, v ...interface{}) {
 			v = v[1:]
 		}
 	}
-	l.Log("ERROR", msg, v)
+	l.Log(Error, msg, v)
 }
 
 // Wtf logs error detailed, and reports error to error transport.
@@ -74,7 +75,13 @@ func (l *Logger) Wtf(v ...interface{}) {
 			v = v[1:]
 		}
 	}
-	l.Log("FATAL", Colored(Red, msg), v)
+	l.Log(Fatal, Colored(Red, msg), v)
+}
+
+// Fatal behaves same as Wtf, but it exits process with code 1
+func (l *Logger) Fatal(v ...interface{}) {
+	l.Wtf(v...)
+	os.Exit(1)
 }
 
 func (l *Logger) Recover(context Attrs) interface{} {
@@ -92,7 +99,7 @@ func (l *Logger) Recover(context Attrs) interface{} {
 func (l *Logger) Timer() *Log {
 	return &Log{
 		Package: l.Name,
-		Level:   "TIMER",
+		Level:   Timer,
 		Time:    Now(),
 	}
 }

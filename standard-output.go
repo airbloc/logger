@@ -26,7 +26,7 @@ func NewStandardOutput(file *os.File, levelSettings, filterSettings string) Stan
 		filterSettings = "*"
 	}
 	defaultOutputSettings := parseVerbosityLevel(levelSettings)
-	writer.Settings = parsePackageSettings(filterSettings, defaultOutputSettings)
+	writer.Verbosities = parsePackageSettings(filterSettings, defaultOutputSettings)
 
 	return writer
 }
@@ -34,10 +34,10 @@ func NewStandardOutput(file *os.File, levelSettings, filterSettings string) Stan
 type StandardWriter struct {
 	ColorsEnabled bool
 	Target        *os.File
-	Settings      map[string]*OutputSettings
+	Verbosities   map[string]LogPriority
 }
 
-func (standardWriter StandardWriter) Init() {}
+func (sw StandardWriter) Init() {}
 
 func (sw StandardWriter) Write(log *Log) {
 	if sw.IsEnabled(log.Package, log.Level) {
@@ -45,43 +45,21 @@ func (sw StandardWriter) Write(log *Log) {
 	}
 }
 
-func (sw *StandardWriter) IsEnabled(logger, level string) bool {
-	settings := sw.LoggerSettings(logger)
-
-	if level == "INFO" {
-		return settings.Info
-	}
-
-	if level == "DEBUG" {
-		return settings.Debug
-	}
-
-	if level == "ERROR" {
-		return settings.Error
-	}
-
-	if level == "TIMER" {
-		return settings.Timer
-	}
-
-	if level == "FATAL" {
-		return settings.Fatal
-	}
-
-	return false
+func (sw *StandardWriter) IsEnabled(logger string, level *LogLevel) bool {
+	verbosity := sw.LogVerbosityOfPackage(logger)
+	return level.Priority >= verbosity
 }
 
-func (sw *StandardWriter) LoggerSettings(p string) *OutputSettings {
-	if settings, ok := sw.Settings[p]; ok {
+func (sw *StandardWriter) LogVerbosityOfPackage(p string) LogPriority {
+	if settings, ok := sw.Verbosities[p]; ok {
 		return settings
 	}
 
 	// If there is a "*" (Select all) setting, return that
-	if settings, ok := sw.Settings["*"]; ok {
+	if settings, ok := sw.Verbosities["*"]; ok {
 		return settings
 	}
-
-	return muted
+	return mutePriority
 }
 
 func (sw *StandardWriter) Format(log *Log) string {
@@ -102,11 +80,19 @@ func (sw *StandardWriter) JSONFormat(log *Log) string {
 }
 
 func (sw *StandardWriter) PrettyFormat(log *Log) string {
-	return fmt.Sprintf("%s %s %s%s",
-		Colored(dim, time.Now().Format("Jan 02 15:04:05.000")),
-		sw.PrettyLabel(log),
+	msg := fmt.Sprintf(
+		"%s │ %s%s: %s%s",
+		log.Level.Symbol(),
+		log.Package,
+		sw.PrettyLabelExt(log),
 		log.Message,
-		sw.PrettyAttrs(log))
+		sw.PrettyAttrs(log),
+	)
+	return fmt.Sprintf(
+		"%s %s",
+		Colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
+		Colored(log.Level.Color, msg),
+	)
 }
 
 func (sw *StandardWriter) PrettyAttrs(log *Log) string {
@@ -122,29 +108,25 @@ func (sw *StandardWriter) PrettyAttrs(log *Log) string {
 		result = fmt.Sprintf("%s %s=%v", result, key, val)
 	}
 
-	if log.Level == "FATAL" {
+	if log.Level == Fatal {
 		result = Colored(Red, result)
 	}
 	return result
 }
 
 func (sw *StandardWriter) PrettyLabel(log *Log) string {
-	return fmt.Sprintf("%s%s%s:%s",
-		colorFor(log.Package),
+	return fmt.Sprintf("%s%s │ %s%s:%s",
+		log.Level.Color,
+		log.Level.Symbol(),
 		log.Package,
 		sw.PrettyLabelExt(log),
 		Reset)
 }
 
 func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
-	if log.Level == "ERROR" || log.Level == "FATAL" {
-		return fmt.Sprintf("(%s!%s)", Red, colorFor(log.Package))
+	if log.Level == Timer {
+		return fmt.Sprintf("(%v)", time.Duration(log.ElapsedNano))
 	}
-
-	if log.Level == "TIMER" {
-		return fmt.Sprintf("(%s%s%s)", Reset, fmt.Sprintf("%v", time.Duration(log.ElapsedNano)), colorFor(log.Package))
-	}
-
 	return ""
 }
 
@@ -152,67 +134,42 @@ func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
 //          *
 //          *@error
 //          *@error,database@timer
-func parsePackageSettings(input string, defaultOutputSettings *OutputSettings) map[string]*OutputSettings {
-	all := map[string]*OutputSettings{}
+func parsePackageSettings(input string, defaultVerbosity LogPriority) map[string]LogPriority {
+	all := map[string]LogPriority{}
 	items := strings.Split(input, ",")
 
 	for _, item := range items {
 		name, verbosity := parsePackageName(item)
-		if verbosity == nil {
-			verbosity = defaultOutputSettings
+		if verbosity == -1 {
+			verbosity = defaultVerbosity
 		}
-
 		all[name] = verbosity
 	}
-
 	return all
 }
 
 // Accepts: users
 //          database@timer
 //          server@error
-func parsePackageName(input string) (string, *OutputSettings) {
+func parsePackageName(input string) (string, LogPriority) {
 	parsed := strings.Split(input, "@")
 	name := strings.TrimSpace(parsed[0])
 
 	if len(parsed) > 1 {
 		return name, parseVerbosityLevel(parsed[1])
 	}
-
-	return name, nil
+	return name, -1
 }
 
-func parseVerbosityLevel(val string) *OutputSettings {
+func parseVerbosityLevel(val string) LogPriority {
 	val = strings.ToUpper(strings.TrimSpace(val))
-
-	s := &OutputSettings{
-		Info:  true,
-		Debug: true,
-		Timer: true,
-		Error: true,
-		Fatal: true,
+	if lvl, ok := logLevelNameMap[val]; !ok {
+		if val == "MUTE" {
+			return Fatal.Priority
+		}
+		// "*" or unknown level: verbose
+		return 0
+	} else {
+		return lvl.Priority
 	}
-
-	switch val {
-	case "MUTE":
-		s.Fatal = false
-		fallthrough
-
-	case "FATAL":
-		s.Error = false
-		fallthrough
-
-	case "ERROR":
-		s.Timer = false
-		fallthrough
-
-	case "TIMER":
-		s.Info = false
-		fallthrough
-
-	case "INFO":
-		s.Debug = false
-	}
-	// all `true` for "*" or "DEBUG"
-	return s
 }

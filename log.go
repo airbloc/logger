@@ -10,13 +10,13 @@ import (
 type Attrs map[string]interface{}
 
 type Log struct {
-	Package     string `json:"package"`
-	Level       string `json:"level"`
-	Message     string `json:"msg"`
-	Attrs       *Attrs `json:"attrs"`
-	Time        int64  `json:"time"`
-	Elapsed     int64  `json:"elapsed"`
-	ElapsedNano int64  `json:"elapsed_nano"`
+	Package     string    `json:"package"`
+	Level       *LogLevel `json:"level"`
+	Message     string    `json:"msg"`
+	Attrs       *Attrs    `json:"attrs"`
+	Time        int64     `json:"time"`
+	Elapsed     int64     `json:"elapsed"`
+	ElapsedNano int64     `json:"elapsed_nano"`
 
 	// only shown in console (purged attributes)
 	DisplayedAttrs *Attrs `json:"-"`

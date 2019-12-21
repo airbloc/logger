@@ -6,14 +6,6 @@ import (
 
 var (
 	runtime *Runtime
-	muted   = &OutputSettings{}
-	verbose = &OutputSettings{
-		Info:  true,
-		Debug: true,
-		Timer: true,
-		Error: true,
-		Fatal: true,
-	}
 )
 
 func init() {
@@ -27,14 +19,6 @@ func init() {
 type OutputWriter interface {
 	Init()
 	Write(log *Log)
-}
-
-type OutputSettings struct {
-	Info  bool
-	Debug bool
-	Timer bool
-	Error bool
-	Fatal bool
 }
 
 type Runtime struct {
