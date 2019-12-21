@@ -1,5 +1,7 @@
 module github.com/airbloc/logger
 
+go 1.13
+
 require (
 	github.com/azer/is-terminal v1.0.0
 	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
