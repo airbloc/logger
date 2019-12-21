@@ -2,7 +2,6 @@ package logger
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -63,23 +62,6 @@ func (sw *StandardWriter) LogVerbosityOfPackage(p string) LogPriority {
 }
 
 func (sw *StandardWriter) Format(log *Log) string {
-	if sw.ColorsEnabled {
-		return sw.PrettyFormat(log)
-	} else {
-		return sw.JSONFormat(log)
-	}
-}
-
-func (sw *StandardWriter) JSONFormat(log *Log) string {
-	str, err := json.Marshal(log)
-	if err != nil {
-		return fmt.Sprintf(`{ "logger-error": "%v" }`, err)
-	}
-
-	return string(str)
-}
-
-func (sw *StandardWriter) PrettyFormat(log *Log) string {
 	msg := fmt.Sprintf(
 		"%s │ %s%s: %s%s",
 		log.Level.Symbol(),
@@ -90,8 +72,8 @@ func (sw *StandardWriter) PrettyFormat(log *Log) string {
 	)
 	return fmt.Sprintf(
 		"%s %s",
-		Colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
-		Colored(log.Level.Color, msg),
+		sw.colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
+		sw.colored(log.Level.Color, msg),
 	)
 }
 
@@ -109,7 +91,7 @@ func (sw *StandardWriter) PrettyAttrs(log *Log) string {
 	}
 
 	if log.Level == Fatal {
-		result = Colored(Red, result)
+		result = sw.colored(Red, result)
 	}
 	return result
 }
@@ -128,6 +110,13 @@ func (sw *StandardWriter) PrettyLabelExt(log *Log) string {
 		return fmt.Sprintf("(%v)", time.Duration(log.ElapsedNano))
 	}
 	return ""
+}
+
+func (sw *StandardWriter) colored(color, text string) string {
+	if sw.ColorsEnabled {
+		return Colored(color, text)
+	}
+	return text
 }
 
 // Accepts: foo,bar,qux@timer
