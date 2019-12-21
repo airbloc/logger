@@ -25,7 +25,7 @@ func main() {
 
 	db.Error("Fatal connection error.")
 
-	users.Info("{} just logged from {}", "John", "Istanbul")
+	users.Debug("{} just logged from {}", "John", "Istanbul")
 
 	socket.Info("Connecting...")
 

@@ -1,19 +1,16 @@
 package loggergin
 
 import (
+	"fmt"
 	"github.com/airbloc/logger"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func Middleware(loggerName string) gin.HandlerFunc {
 	log := logger.New(loggerName)
 
 	return func(c *gin.Context) {
-		url := c.Request.URL.Path
-		if c.Request.URL.RawQuery != "" {
-			url = url + "?" + c.Request.URL.RawQuery
-		}
-
 		timer := log.Timer()
 		c.Next()
 
@@ -24,7 +21,7 @@ func Middleware(loggerName string) gin.HandlerFunc {
 		}
 		info := logger.Attrs{
 			"method": c.Request.Method,
-			"url":    url,
+			"url":    getRequestPath(c.Request),
 			"status": statusCode,
 			"client": c.ClientIP(),
 		}
@@ -33,4 +30,31 @@ func Middleware(loggerName string) gin.HandlerFunc {
 			logger.Reset,
 			info)
 	}
+}
+
+func Recovery(loggerName string) gin.HandlerFunc {
+	log := logger.New(loggerName)
+
+	return func(c *gin.Context) {
+		defer func() {
+			info := logger.Attrs{
+				"method": c.Request.Method,
+				"url":    getRequestPath(c.Request),
+				"client": c.ClientIP(),
+			}
+			if r := log.Recover(info); r != nil {
+				c.Error(fmt.Errorf("panic: %v", r))
+			}
+		}()
+		c.Next()
+	}
+}
+
+func getRequestPath(r *http.Request) string {
+	path := r.URL.Path
+	raw := r.URL.RawQuery
+	if raw != "" {
+		return path + "?" + raw
+	}
+	return path
 }
