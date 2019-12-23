@@ -18,6 +18,7 @@ type Logger interface {
 
 	Fatal(v ...interface{})
 	Wtf(v ...interface{})
+	Recover(context Attrs) interface{}
 
 	// WithAttrs returns a sub-logger with given attributes attached as a default.
 	WithAttrs(attrs Attrs) Logger

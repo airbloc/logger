@@ -9,6 +9,18 @@ import (
 
 type Attrs map[string]interface{}
 
+// Merge returns a new attributes overridden with given attributes.
+func (a Attrs) Merge(b Attrs) Attrs {
+	merged := Attrs{}
+	for k, v := range a {
+		merged[k] = v
+	}
+	for k, v := range b {
+		merged[k] = v
+	}
+	return merged
+}
+
 type Log struct {
 	Package     string    `json:"package"`
 	Level       *LogLevel `json:"level"`

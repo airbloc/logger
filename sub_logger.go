@@ -14,10 +14,8 @@ func (s *subLogger) mergeWithDefaultAttrs(args []interface{}) []interface{} {
 			args = args[:lastIndex]
 		}
 	}
-	for k, v := range s.defaultAttrs {
-		attrs[k] = v
-	}
-	return append(args, attrs)
+	mergedAttrs := s.defaultAttrs.Merge(attrs)
+	return append(args, mergedAttrs)
 }
 
 func (s *subLogger) Debug(msg string, v ...interface{}) {
@@ -53,6 +51,11 @@ func (s *subLogger) Fatal(v ...interface{}) {
 func (s *subLogger) Wtf(v ...interface{}) {
 	vv := s.mergeWithDefaultAttrs(v)
 	s.Wtf(vv...)
+}
+
+func (s *subLogger) Recover(context Attrs) interface{} {
+	mergedAttrs := s.defaultAttrs.Merge(context)
+	return s.parent.Recover(mergedAttrs)
 }
 
 func (s *subLogger) WithAttrs(attrs Attrs) Logger {
