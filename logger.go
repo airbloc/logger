@@ -35,6 +35,10 @@ func (logger *Logger) Log(level *LogLevel, message string, args []interface{}) {
 	})
 }
 
+func (l *Logger) Warn(msg string, v ...interface{}) {
+	l.Log(Warn, msg, v)
+}
+
 // Info prints log information to the screen that is informational in nature.
 func (l *Logger) Info(msg string, v ...interface{}) {
 	l.Log(Info, msg, v)
