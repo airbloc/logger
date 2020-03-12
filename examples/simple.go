@@ -15,6 +15,7 @@ func main() {
 	timer := log.Timer()
 	time.Sleep(time.Millisecond * 250)
 	timer.End("Fetched foo/bar.jpg")
+	log.Verbose("Just a request")
 
 	log.Error("Failed to start, shutting down...")
 }
