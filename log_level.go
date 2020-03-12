@@ -30,12 +30,13 @@ func (lvl *LogLevel) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	Debug = addLogLevel("DEBUG", white, 0)
-	Info  = addLogLevel("INFO", Reset, 1)
-	Timer = addLogLevel("TIMER", Green, 1)
-	Warn  = addLogLevel("WARN", Yellow, 5)
-	Error = addLogLevel("ERROR", Red, 10)
-	Fatal = addLogLevel("FATAL", Red, 99)
+	Verbose = addLogLevel("Verbose", dim, 0)
+	Debug   = addLogLevel("DEBUG", white, 1)
+	Info    = addLogLevel("INFO", Reset, 2)
+	Timer   = addLogLevel("TIMER", Green, 3)
+	Warn    = addLogLevel("WARN", Yellow, 5)
+	Error   = addLogLevel("ERROR", Red, 10)
+	Fatal   = addLogLevel("FATAL", Red, 99)
 
 	logLevelNameMap = map[string]*LogLevel{}
 )

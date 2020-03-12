@@ -18,6 +18,16 @@ func (s *subLogger) mergeWithDefaultAttrs(args []interface{}) []interface{} {
 	return append(args, mergedAttrs)
 }
 
+func (s *subLogger) Log(level *LogLevel, message string, args []interface{}) {
+	vv := s.mergeWithDefaultAttrs(args)
+	s.parent.Log(level, message, vv)
+}
+
+func (s *subLogger) Verbose(msg string, v ...interface{}) {
+	vv := s.mergeWithDefaultAttrs(v)
+	s.parent.Verbose(msg, vv...)
+}
+
 func (s *subLogger) Debug(msg string, v ...interface{}) {
 	vv := s.mergeWithDefaultAttrs(v)
 	s.parent.Debug(msg, vv...)
@@ -53,9 +63,12 @@ func (s *subLogger) Wtf(v ...interface{}) {
 	s.Wtf(vv...)
 }
 
-func (s *subLogger) Recover(context Attrs) interface{} {
-	mergedAttrs := s.defaultAttrs.Merge(context)
-	return s.parent.Recover(mergedAttrs)
+func (s *subLogger) Recover(optionalContext ...Attrs) *PanicError {
+	if len(optionalContext) > 0 {
+		mergedAttrs := s.defaultAttrs.Merge(optionalContext[0])
+		return s.parent.Recover(mergedAttrs)
+	}
+	return s.parent.Recover()
 }
 
 func (s *subLogger) WithAttrs(attrs Attrs) Logger {

@@ -6,24 +6,26 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
 )
 
-
 // UnaryServerLogger returns a new unary server interceptors that logs unary requests.
-func UnaryServerLogger(log logger.Logger) grpc.UnaryServerInterceptor {
+func UnaryServerLogger(log logger.Logger, opts ...Option) grpc.UnaryServerInterceptor {
+	opt := createOptions(opts)
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		timer := log.Timer()
+		startTime := time.Now()
 		resp, err = handler(ctx, req)
+		elapsed := time.Now().Sub(startTime).String()
 
 		if panicErr, ok := err.(*logger.PanicError); ok {
 			err = status.Error(codes.Internal, panicErr.Error())
-			timer.End("{}Request {} – {}{}", logger.Red, info.FullMethod, panicErr.Pretty(), logger.Reset)
+			log.Log(opt.errorLogLevel, "Request {}({}) – {}", []interface{}{info.FullMethod, elapsed, panicErr.Pretty()})
 
-		} else if _, ok := status.FromError(err); ok {
-			code := grpcCodeToString[status.Code(err)]
-			timer.End("{}Request {} – {}: {}{}", logger.Red, info.FullMethod, code, err.Error(), logger.Reset)
+		} else if s := status.Convert(err); s != nil {
+			code := grpcCodeToString[s.Code()]
+			log.Log(opt.errorLogLevel, "Request {}({}) – {}: {}", []interface{}{info.FullMethod, elapsed, code, s.Message()})
 		} else {
-			timer.End("Request {} – OK", info.FullMethod)
+			log.Log(opt.requestLogLevel, "Request {}({}) – OK", []interface{}{info.FullMethod, elapsed})
 		}
 		return
 	}
@@ -43,20 +45,22 @@ func UnaryServerRecover() grpc.UnaryServerInterceptor {
 }
 
 // StreamServerInterceptor returns a new streaming server interceptor that logs streams.
-func StreamServerLogger(log logger.Logger) grpc.StreamServerInterceptor {
+func StreamServerLogger(log logger.Logger, opts ...Option) grpc.StreamServerInterceptor {
+	opt := createOptions(opts)
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		timer := log.Timer()
+		startTime := time.Now()
 		err := handler(srv, ss)
+		elapsed := time.Now().Sub(startTime).String()
 
 		if panicErr, ok := err.(*logger.PanicError); ok {
 			err = status.Error(codes.Internal, panicErr.Error())
-			timer.End("{}Streaming {} – {}{}", logger.Red, info.FullMethod, panicErr.Pretty(), logger.Reset)
+			log.Log(opt.errorLogLevel, "Streaming {}({}) – {}", []interface{}{info.FullMethod, elapsed, panicErr.Pretty()})
 
-		} else if _, ok := status.FromError(err); ok {
-			code := grpcCodeToString[status.Code(err)]
-			timer.End("{}Streaming {} – {}: {}{}", logger.Red, info.FullMethod, code, err.Error(), logger.Reset)
+		} else if s := status.Convert(err); s != nil {
+			code := grpcCodeToString[s.Code()]
+			log.Log(opt.errorLogLevel, "Streaming {}({}) – {}: {}", []interface{}{info.FullMethod, elapsed, code, s.Message()})
 		} else {
-			timer.End("Streaming {} – OK", info.FullMethod)
+			log.Log(opt.requestLogLevel, "Streaming {}({}) – OK", []interface{}{info.FullMethod, elapsed})
 		}
 		return err
 	}

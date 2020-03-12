@@ -3,12 +3,13 @@ package logger
 import (
 	"fmt"
 	"os"
-	"runtime/debug"
 )
 
 // Logger is the unit of the logger package, a smart, pretty-printing gate between
 // the program and the output stream.
 type Logger interface {
+	Log(level *LogLevel, message string, args []interface{})
+	Verbose(msg string, v ...interface{})
 	Debug(msg string, v ...interface{})
 	Info(msg string, v ...interface{})
 	Warn(msg string, v ...interface{})
@@ -18,7 +19,7 @@ type Logger interface {
 
 	Fatal(v ...interface{})
 	Wtf(v ...interface{})
-	Recover(context Attrs) interface{}
+	Recover(optionalContext ...Attrs) *PanicError
 
 	// WithAttrs returns a sub-logger with given attributes attached as a default.
 	WithAttrs(attrs Attrs) Logger
@@ -49,6 +50,11 @@ func (l *logger) Log(level *LogLevel, message string, args []interface{}) {
 
 		DisplayedAttrs: &purgedAttrs,
 	})
+}
+
+// Verbose logs messages that logged frequently (e.g. request logs).
+func (l *logger) Verbose(msg string, v ...interface{}) {
+	l.Log(Verbose, msg, v)
 }
 
 // Error logs an debug message.
@@ -105,12 +111,13 @@ func (l *logger) Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
-func (l *logger) Recover(context Attrs) interface{} {
-	if r := recover(); r != nil {
-		if err, ok := r.(error); ok {
-			r = err.Error()
+func (l *logger) Recover(optionalContext ...Attrs) *PanicError {
+	if r := WrapRecover(recover()); r != nil {
+		if len(optionalContext) > 0 {
+			l.Wtf(r.Pretty(), optionalContext[0])
+		} else {
+			l.Wtf(r.Pretty())
 		}
-		l.Wtf("panic: {}\n{}", r, Colored(dim, string(debug.Stack())), context)
 		return r
 	}
 	return nil
