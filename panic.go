@@ -46,14 +46,14 @@ func WrapRecover(r interface{}) *PanicError {
 
 	st := make([]byte, 1024)
 	for {
-		n := goruntime.Stack(st, true)
+		n := goruntime.Stack(st, false)
 		if n < len(st) {
 			st = st[:n]
 			break
 		}
 		st = make([]byte, 2*len(st))
 	}
-	c, err := stack.ParseDump(bytes.NewReader(st), os.Stdout, false)
+	c, err := stack.ParseDump(bytes.NewReader(st), os.Stdout, true)
 	if err != nil {
 		log.Printf("warning: unable to parse panic stacktrace: %v\n", err)
 		return &PanicError{
