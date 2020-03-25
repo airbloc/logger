@@ -22,7 +22,7 @@ type PanicError struct {
 }
 
 func (pe PanicError) Error() string {
-	return pe.Reason
+	return pe.Pretty()
 }
 
 func (pe PanicError) Pretty() string {
@@ -53,7 +53,7 @@ func WrapRecover(r interface{}) *PanicError {
 		}
 		st = make([]byte, 2*len(st))
 	}
-	c, err := stack.ParseDump(bytes.NewReader(st), os.Stdout, true)
+	c, err := stack.ParseDump(bytes.NewReader(st), os.Stdout, false)
 	if err != nil {
 		log.Printf("warning: unable to parse panic stacktrace: %v\n", err)
 		return &PanicError{
