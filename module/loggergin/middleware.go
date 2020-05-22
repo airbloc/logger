@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-func Middleware(loggerName string) gin.HandlerFunc {
+func Middleware(loggerName string, opt ...Option) gin.HandlerFunc {
+	o := buildOptions(opt)
 	log := logger.New(loggerName)
 
 	return func(c *gin.Context) {
@@ -15,6 +16,9 @@ func Middleware(loggerName string) gin.HandlerFunc {
 		c.Next()
 
 		statusCode := c.Writer.Status()
+		if statusCode == 404 && o.disable404Log {
+			return
+		}
 		statusColor := logger.Green
 		if statusCode < 200 || statusCode >= 300 {
 			statusColor = logger.Red
@@ -25,10 +29,11 @@ func Middleware(loggerName string) gin.HandlerFunc {
 			"status": statusCode,
 			"client": c.ClientIP(),
 		}
-		timer.End("{method} {url} – {}HTTP {status}{} – {client}",
-			statusColor,
-			logger.Reset,
-			info)
+		if o.disableColor {
+			timer.End("{method} {url} – HTTP {status} – {client}", info)
+			return
+		}
+		timer.End("{method} {url} – {}HTTP {status}{} – {client}", statusColor, logger.Reset, info)
 	}
 }
 
