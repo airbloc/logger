@@ -68,12 +68,12 @@ func (sw *StandardWriter) Format(log *Log) string {
 		if i == 0 {
 			msg := fmt.Sprintf("%s │ %s%s: %s%s", log.Level.Symbol(), log.Package, sw.PrettyLabelExt(log), line, sw.PrettyAttrs(log))
 			output += fmt.Sprintf(
-				"%s %s\n",
+				"%s %s",
 				sw.colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
 				sw.colored(log.Level.Color, msg),
 			)
 		} else {
-			output += fmt.Sprintf("%s %s", sw.colored(dim, strings.Repeat(" ", 24)), sw.colored(log.Level.Color, " │ "+line))
+			output += fmt.Sprintf("\n%s %s", sw.colored(dim, strings.Repeat(" ", 24)), sw.colored(log.Level.Color, " │ "+line))
 		}
 	}
 	return output
