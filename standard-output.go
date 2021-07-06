@@ -62,19 +62,21 @@ func (sw *StandardWriter) LogVerbosityOfPackage(p string) LogPriority {
 }
 
 func (sw *StandardWriter) Format(log *Log) string {
-	msg := fmt.Sprintf(
-		"%s │ %s%s: %s%s",
-		log.Level.Symbol(),
-		log.Package,
-		sw.PrettyLabelExt(log),
-		log.Message,
-		sw.PrettyAttrs(log),
-	)
-	return fmt.Sprintf(
-		"%s %s",
-		sw.colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
-		sw.colored(log.Level.Color, msg),
-	)
+	output := ""
+
+	for i, line := range strings.Split(log.Message, "\n") {
+		if i == 0 {
+			msg := fmt.Sprintf("%s │ %s%s: %s%s", log.Level.Symbol(), log.Package, sw.PrettyLabelExt(log), line, sw.PrettyAttrs(log))
+			output += fmt.Sprintf(
+				"%s %s\n",
+				sw.colored(dim, time.Now().Format("2006-01-02 15:04:05.000")),
+				sw.colored(log.Level.Color, msg),
+			)
+		} else {
+			output += fmt.Sprintf("%s %s", sw.colored(dim, strings.Repeat(" ", 24)), sw.colored(log.Level.Color, " │ "+line))
+		}
+	}
+	return output
 }
 
 func (sw *StandardWriter) PrettyAttrs(log *Log) string {
